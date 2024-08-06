@@ -33,7 +33,7 @@ async def create_command_handler(message: types.Message, state: FSMContext):
     await message.answer("Введіть своє ім'я, щоб згенерувати сертифікат!")
     await state.set_state(CommandState.waiting_for_name)
 
-@router.message(state=CommandState.waiting_for_name)
+@router.message(StateFilter(CommandState.waiting_for_name))
 async def send_certificate_handler(message: types.Message, state: FSMContext):
     clock = await bot.send_message(message.chat.id, "⏳")
     
