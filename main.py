@@ -16,29 +16,29 @@ dp = Dispatcher(bot, storage=storage)
 class CommandState:
     waiting_for_name = "waiting_for_name"
 
-class DataBase:
+# class DataBase:
 
-    def __init__(self, db_file):
-        self.connect = sqlite3.connect(db_file)
-        self.cursor = self.connect.cursor()
+#     def __init__(self, db_file):
+#         self.connect = sqlite3.connect(db_file)
+#         self.cursor = self.connect.cursor()
 
-    async def add_users(self, user_id, user_name, user_username):
-        with self.connect:
-            return self.cursor.execute(
-                """INSERT OR IGNORE INTO users (user_id, user_name, user_username) VALUES (?, ?, ?)""",
-                (user_id, user_name, user_username))
+#     async def add_users(self, user_id, user_name, user_username):
+#         with self.connect:
+#             return self.cursor.execute(
+#                 """INSERT OR IGNORE INTO users (user_id, user_name, user_username) VALUES (?, ?, ?)""",
+#                 (user_id, user_name, user_username))
 
-    async def all_users_count(self):
-        with self.connect:
-            return self.cursor.execute(
-                "SELECT COUNT(*) FROM users").fetchone()[0]
+#     async def all_users_count(self):
+#         with self.connect:
+#             return self.cursor.execute(
+#                 "SELECT COUNT(*) FROM users").fetchone()[0]
 
-    async def all_users(self):
-        with self.connect:
-            return self.cursor.execute(
-                "SELECT DISTINCT user_id FROM users").fetchall()
+#     async def all_users(self):
+#         with self.connect:
+#             return self.cursor.execute(
+#                 "SELECT DISTINCT user_id FROM users").fetchall()
 
-db = DataBase('users.db')
+# db = DataBase('users.db')
 
 @dp.message_handler(Command("start"))
 async def start(message: types.Message):
@@ -46,7 +46,7 @@ async def start(message: types.Message):
     user_name = message.from_user.full_name
     user_username = message.from_user.username
 
-    await db.add_users(user_id, user_name, user_username)
+    # await db.add_users(user_id, user_name, user_username)
     await message.answer(
         "Введи команду /create, щоб створити сертифікат GoITeens"
     )
@@ -88,69 +88,69 @@ async def send_certificate(message: types.Message, state: FSMContext):
     await message.answer_photo(image_buffer)
     await state.finish()
 
-@dp.message_handler(commands=['admin'])
-async def admin(message: types.Message):
-    user_id = message.from_user.id
-    all_users_count = await db.all_users_count()
+# @dp.message_handler(commands=['admin'])
+# async def admin(message: types.Message):
+#     user_id = message.from_user.id
+#     all_users_count = await db.all_users_count()
 
-    admin_keyboard = InlineKeyboardMarkup()
-    send_to_all_button = InlineKeyboardButton(text='💬Mailing',
-                                              callback_data='send_to_all')
+#     admin_keyboard = InlineKeyboardMarkup()
+#     send_to_all_button = InlineKeyboardButton(text='💬Mailing',
+#                                               callback_data='send_to_all')
 
-    admin_keyboard.row(send_to_all_button)
+#     admin_keyboard.row(send_to_all_button)
 
-    print(config.ADMIN_ID)
+#     print(config.ADMIN_ID)
 
-    if user_id == int(config.ADMIN_ID):
-        await message.reply(f"""Привіт, це панель адміністратора.
-_🪪Кількість користувачів бота_: *{all_users_count}*
-""",
-                            parse_mode="Markdown",
-                            reply_markup=admin_keyboard)
+#     if user_id == int(config.ADMIN_ID):
+#         await message.reply(f"""Привіт, це панель адміністратора.
+# _🪪Кількість користувачів бота_: *{all_users_count}*
+# """,
+#                             parse_mode="Markdown",
+#                             reply_markup=admin_keyboard)
 
-    else:
-        await message.reply("Ви не маєте прав адміністратора!")
+#     else:
+#         await message.reply("Ви не маєте прав адміністратора!")
 
-@dp.callback_query_handler(lambda call: call.data == 'send_to_all')
-async def send_to_all_callback(call: types.CallbackQuery):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-    cancel = types.KeyboardButton("↩️Cancel")
-    keyboard.add(cancel)
+# @dp.callback_query_handler(lambda call: call.data == 'send_to_all')
+# async def send_to_all_callback(call: types.CallbackQuery):
+#     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+#     cancel = types.KeyboardButton("↩️Cancel")
+#     keyboard.add(cancel)
 
-    await bot.delete_message(call.message.chat.id, call.message.message_id)
+#     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
-    await bot.send_message(chat_id=call.message.chat.id,
-                           text='Введіть повідомлення для віправки:',
-                           reply_markup=keyboard)
-    await dp.current_state().set_state("send_to_all_message")
+#     await bot.send_message(chat_id=call.message.chat.id,
+#                            text='Введіть повідомлення для віправки:',
+#                            reply_markup=keyboard)
+#     await dp.current_state().set_state("send_to_all_message")
 
-@dp.message_handler(state="send_to_all_message")
-async def send_to_all_message(message: types.Message, state: FSMContext):
-    sender_id = message.from_user.id
+# @dp.message_handler(state="send_to_all_message")
+# async def send_to_all_message(message: types.Message, state: FSMContext):
+#     sender_id = message.from_user.id
 
-    if message.text == "↩️Cancel":
-        await bot.send_message(message.chat.id,
-                               'Розслику скасовано!',
-                               reply_markup=types.ReplyKeyboardRemove())
-        await state.finish()
-    else:
-        await dp.bot.send_chat_action(message.chat.id, "typing")
+#     if message.text == "↩️Cancel":
+#         await bot.send_message(message.chat.id,
+#                                'Розслику скасовано!',
+#                                reply_markup=types.ReplyKeyboardRemove())
+#         await state.finish()
+#     else:
+#         await dp.bot.send_chat_action(message.chat.id, "typing")
 
-        users = await db.all_users()
+#         users = await db.all_users()
 
-        for user in users:
-            try:
-                await bot.copy_message(chat_id=user[0],
-                                       from_chat_id=sender_id,
-                                       message_id=message.message_id,
-                                       parse_mode="Markdown")
-            except Exception as e:
-                print(f"Error sending message to user {user[0]}: {str(e)}")
-                continue
-        await bot.send_message(chat_id=message.chat.id,
-                               text="Sending finished!",
-                               reply_markup=ReplyKeyboardRemove())
-        await state.finish()
+#         for user in users:
+#             try:
+#                 await bot.copy_message(chat_id=user[0],
+#                                        from_chat_id=sender_id,
+#                                        message_id=message.message_id,
+#                                        parse_mode="Markdown")
+#             except Exception as e:
+#                 print(f"Error sending message to user {user[0]}: {str(e)}")
+#                 continue
+#         await bot.send_message(chat_id=message.chat.id,
+#                                text="Sending finished!",
+#                                reply_markup=ReplyKeyboardRemove())
+#         await state.finish()
 
 if __name__ == "__main__":
     import keep_alive
