@@ -1,10 +1,10 @@
 import io
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
-import asyncio
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Command
+import asyncio
 from PIL import Image, ImageDraw, ImageFont
 import config
 
@@ -14,10 +14,8 @@ bot = Bot(token=config.TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-
 class CommandState:
     waiting_for_name = "waiting_for_name"
-
 
 class DataBase:
 
@@ -41,9 +39,7 @@ class DataBase:
             return self.cursor.execute(
                 "SELECT DISTINCT user_id FROM users").fetchall()
 
-
 db = DataBase('users.db')
-
 
 @dp.message_handler(Command("start"))
 async def start(message: types.Message):
@@ -56,13 +52,11 @@ async def start(message: types.Message):
         "Введи команду /create, щоб створити сертифікат GoITeens"
     )
 
-
 @dp.message_handler(Command("create"))
 async def create(message: types.Message, state: FSMContext):
     await message.answer("Введіть своє ім'я, щоб згенерувати сертифікат!")
 
     await state.set_state(CommandState.waiting_for_name)
-
 
 @dp.message_handler(state=CommandState.waiting_for_name)
 async def send_certificate(message: types.Message, state: FSMContext):
@@ -95,7 +89,6 @@ async def send_certificate(message: types.Message, state: FSMContext):
     await message.answer_photo(image_buffer)
     await state.finish()
 
-
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message):
     user_id = message.from_user.id
@@ -107,8 +100,6 @@ async def admin(message: types.Message):
 
     admin_keyboard.row(send_to_all_button)
 
-    print(config.ADMIN_ID)
-
     if user_id == int(config.ADMIN_ID):
         await message.reply(f"""Привіт, це панель адміністратора.
 _🪪Кількість користувачів бота_: *{all_users_count}*
@@ -119,7 +110,6 @@ _🪪Кількість користувачів бота_: *{all_users_count}*
     else:
         await message.reply("Ви не маєте прав адміністратора!")
 
-
 @dp.callback_query_handler(lambda call: call.data == 'send_to_all')
 async def send_to_all_callback(call: types.CallbackQuery):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
@@ -129,10 +119,9 @@ async def send_to_all_callback(call: types.CallbackQuery):
     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
     await bot.send_message(chat_id=call.message.chat.id,
-                           text='Введіть повідомення для віправки:',
+                           text='Введіть повідомлення для віправки:',
                            reply_markup=keyboard)
     await dp.current_state().set_state("send_to_all_message")
-
 
 @dp.message_handler(state="send_to_all_message")
 async def send_to_all_message(message: types.Message, state: FSMContext):
@@ -162,10 +151,6 @@ async def send_to_all_message(message: types.Message, state: FSMContext):
                                reply_markup=ReplyKeyboardRemove())
         await state.finish()
 
-
 if __name__ == "__main__":
-    import keep_alive
-    keep_alive.keep_alive()
-
     from aiogram import executor
     executor.start_polling(dp, skip_updates=True)
