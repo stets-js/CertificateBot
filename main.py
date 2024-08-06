@@ -18,12 +18,6 @@ class CommandState:
     waiting_for_email = "waiting_for_email"
 
 @dp.message_handler(Command("start"))
-async def start(message: types.Message):
-    await message.answer(
-        "Введи команду /create, щоб створити сертифікат GoITeens"
-    )
-
-@dp.message_handler(Command("create"))
 async def create(message: types.Message, state: FSMContext):
     await message.answer("Введіть свою електронну пошту, щоб згенерувати сертифікат!")
     await state.set_state(CommandState.waiting_for_email)
