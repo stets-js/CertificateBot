@@ -1,25 +1,22 @@
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram import Router
-from aiogram.filters import Command, StateFilter
-from aiogram.fsm.context import FSMContext
 import io
+from aiogram import Bot, Dispatcher, types
+import asyncio
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Command
 from PIL import Image, ImageDraw, ImageFont
-import flask
+import config
 
-API_TOKEN = '7061386650:AAHuEge8iJdl1nuhRtehZ8ek2Kbh_JBn9M0'
-
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=config.TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher(storage=storage)
-router = Router()
+dp = Dispatcher(bot, storage=storage)
 
 class CommandState:
     waiting_for_name = "waiting_for_name"
 
-@router.message(Command("start"))
-async def start_command_handler(message: types.Message, state: FSMContext):
+
+@dp.message_handler(Command("start"))
+async def start(message: types.Message):
     user_id = message.from_user.id
     user_name = message.from_user.full_name
     user_username = message.from_user.username
@@ -28,13 +25,14 @@ async def start_command_handler(message: types.Message, state: FSMContext):
         "Введи команду /create, щоб створити сертифікат GoITeens"
     )
 
-@router.message(Command("create"))
-async def create_command_handler(message: types.Message, state: FSMContext):
+@dp.message_handler(Command("create"))
+async def create(message: types.Message, state: FSMContext):
     await message.answer("Введіть своє ім'я, щоб згенерувати сертифікат!")
+
     await state.set_state(CommandState.waiting_for_name)
 
-@router.message(StateFilter(CommandState.waiting_for_name))
-async def send_certificate_handler(message: types.Message, state: FSMContext):
+@dp.message_handler(state=CommandState.waiting_for_name)
+async def send_certificate(message: types.Message, state: FSMContext):
     clock = await bot.send_message(message.chat.id, "⏳")
     
     await asyncio.sleep(1)
@@ -64,18 +62,9 @@ async def send_certificate_handler(message: types.Message, state: FSMContext):
     await message.answer_photo(image_buffer)
     await state.finish()
 
-dp.include_router(router)
-
-app = flask.Flask(__name__)
-
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    json_str = flask.request.get_data(as_text=True)
-    update = types.Update.parse_raw(json_str)
-    asyncio.run(dp.process_update(update))
-    return '', 200
-
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    app.run(host='0.0.0.0', port=8000)
+    import keep_alive
+    keep_alive.keep_alive()
+
+    from aiogram import executor
+    executor.start_polling(dp, skip_updates=True)
