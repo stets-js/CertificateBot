@@ -7,7 +7,7 @@ import io
 from PIL import Image, ImageDraw, ImageFont
 import asyncio
 
-API_TOKEN = 'YOUR_BOT_TOKEN_HERE'
+API_TOKEN = '7061386650:AAHuEge8iJdl1nuhRtehZ8ek2Kbh_JBn9M0'
 
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
