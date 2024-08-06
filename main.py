@@ -53,7 +53,7 @@ async def start(message: types.Message):
 
     await db.add_users(user_id, user_name, user_username)
     await message.answer(
-        "Привіт, любителю фальшивих паперів. Введи команду /create, щоб створити сертифікат GoITeens, розбійнику."
+        "Введи команду /create, щоб створити сертифікат GoITeens"
     )
 
 
@@ -75,9 +75,14 @@ async def send_certificate(message: types.Message, state: FSMContext):
         font_path = "OpenSans-SemiBold.ttf"
         font_size = 75
         font = ImageFont.truetype(font_path, font_size)
-        text_wight = draw.textsize(text=message.text, font=font)
-        image_wight = im.size
-        text_position = ((image_wight[0] - text_wight[0]) // 2, 1233)
+        
+        # Використовуйте textbbox замість textsize
+        text_bbox = draw.textbbox((0, 0), message.text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        image_width, image_height = im.size
+        text_position = ((image_width - text_width) // 2, 1233)
+        
         draw.text(text_position, message.text, font=font)
 
         image_buffer = io.BytesIO()
@@ -124,7 +129,7 @@ async def send_to_all_callback(call: types.CallbackQuery):
     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
     await bot.send_message(chat_id=call.message.chat.id,
-                           text='Введіть повіоомення для віправки:',
+                           text='Введіть повідомення для віправки:',
                            reply_markup=keyboard)
     await dp.current_state().set_state("send_to_all_message")
 
