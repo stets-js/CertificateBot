@@ -7,17 +7,14 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from PIL import Image, ImageDraw, ImageFont
 import config
-
 import sqlite3
 
 bot = Bot(token=config.TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-
 class CommandState:
     waiting_for_name = "waiting_for_name"
-
 
 class DataBase:
 
@@ -41,9 +38,7 @@ class DataBase:
             return self.cursor.execute(
                 "SELECT DISTINCT user_id FROM users").fetchall()
 
-
 db = DataBase('users.db')
-
 
 @dp.message_handler(Command("start"))
 async def start(message: types.Message):
@@ -56,13 +51,11 @@ async def start(message: types.Message):
         "Введи команду /create, щоб створити сертифікат GoITeens"
     )
 
-
 @dp.message_handler(Command("create"))
 async def create(message: types.Message, state: FSMContext):
     await message.answer("Введіть своє ім'я, щоб згенерувати сертифікат!")
 
     await state.set_state(CommandState.waiting_for_name)
-
 
 @dp.message_handler(state=CommandState.waiting_for_name)
 async def send_certificate(message: types.Message, state: FSMContext):
@@ -75,9 +68,14 @@ async def send_certificate(message: types.Message, state: FSMContext):
         font_path = "OpenSans-SemiBold.ttf"
         font_size = 75
         font = ImageFont.truetype(font_path, font_size)
-        text_wight = draw.textsize(text=message.text, font=font)
-        image_wight = im.size
-        text_position = ((image_wight[0] - text_wight[0]) // 2, 1233)
+        
+        # Використовуйте textbbox для отримання розміру тексту
+        text_bbox = draw.textbbox((0, 0), message.text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+        image_width, image_height = im.size
+        text_position = ((image_width - text_width) // 2, 1233)
+        
         draw.text(text_position, message.text, font=font)
 
         image_buffer = io.BytesIO()
@@ -89,7 +87,6 @@ async def send_certificate(message: types.Message, state: FSMContext):
     await bot.delete_message(message.chat.id, clock.message_id)
     await message.answer_photo(image_buffer)
     await state.finish()
-
 
 @dp.message_handler(commands=['admin'])
 async def admin(message: types.Message):
@@ -114,7 +111,6 @@ _🪪Кількість користувачів бота_: *{all_users_count}*
     else:
         await message.reply("Ви не маєте прав адміністратора!")
 
-
 @dp.callback_query_handler(lambda call: call.data == 'send_to_all')
 async def send_to_all_callback(call: types.CallbackQuery):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
@@ -124,10 +120,9 @@ async def send_to_all_callback(call: types.CallbackQuery):
     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
     await bot.send_message(chat_id=call.message.chat.id,
-                           text='Введіть повідомення для віправки:',
+                           text='Введіть повідомлення для віправки:',
                            reply_markup=keyboard)
     await dp.current_state().set_state("send_to_all_message")
-
 
 @dp.message_handler(state="send_to_all_message")
 async def send_to_all_message(message: types.Message, state: FSMContext):
@@ -156,7 +151,6 @@ async def send_to_all_message(message: types.Message, state: FSMContext):
                                text="Sending finished!",
                                reply_markup=ReplyKeyboardRemove())
         await state.finish()
-
 
 if __name__ == "__main__":
     import keep_alive
