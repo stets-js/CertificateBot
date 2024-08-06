@@ -9,7 +9,7 @@ import config
 
 bot = Bot(token=config.TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher()
 
 class CommandState:
     waiting_for_name = "waiting_for_name"
