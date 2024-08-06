@@ -43,7 +43,6 @@ async def handle_email(message: types.Message, state: FSMContext):
             font_size = 75
             font = ImageFont.truetype(font_path, font_size)
             
-            # Використовуйте textbbox для отримання розміру тексту
             text_bbox = draw.textbbox((0, 0), user_name, font=font)
             text_width = text_bbox[2] - text_bbox[0]
             text_height = text_bbox[3] - text_bbox[1]
@@ -62,7 +61,7 @@ async def handle_email(message: types.Message, state: FSMContext):
         await message.answer_photo(image_buffer)
         await state.finish()
     else:
-        await message.answer("Пошта не вірна, спробуйте знову.")
+        await message.answer("Пошта не вірна, спробуйте знову:")
         await state.set_state(CommandState.waiting_for_email)
 
 if __name__ == "__main__":
