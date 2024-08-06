@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Router
@@ -5,9 +6,9 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 import io
 from PIL import Image, ImageDraw, ImageFont
-import asyncio
+import flask
 
-API_TOKEN = '7061386650:AAHuEge8iJdl1nuhRtehZ8ek2Kbh_JBn9M0'
+API_TOKEN = 'YOUR_BOT_TOKEN_HERE'
 
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
@@ -16,7 +17,6 @@ router = Router()
 
 class CommandState:
     waiting_for_name = "waiting_for_name"
-
 
 @router.message(Command("start"))
 async def start_command_handler(message: types.Message, state: FSMContext):
@@ -66,9 +66,16 @@ async def send_certificate_handler(message: types.Message, state: FSMContext):
 
 dp.include_router(router)
 
-if __name__ == "__main__":
-    import keep_alive
-    keep_alive.keep_alive()
+app = flask.Flask(__name__)
 
-    from aiogram import executor
-    executor.start_polling(dp, skip_updates=True)
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    json_str = flask.request.get_data(as_text=True)
+    update = types.Update.parse_raw(json_str)
+    asyncio.run(dp.process_update(update))
+    return '', 200
+
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    app.run(host='0.0.0.0', port=8000)
