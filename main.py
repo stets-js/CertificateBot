@@ -10,9 +10,12 @@ import config
 
 import sqlite3
 
+# Створення екземплярів
 bot = Bot(token=config.TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher()
+
+dp.setup(bot=bot, storage=storage)  # Оновлений спосіб створення Dispatcher
 
 class CommandState:
     waiting_for_name = "waiting_for_name"
