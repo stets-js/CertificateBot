@@ -1,22 +1,25 @@
-import io
 from aiogram import Bot, Dispatcher, types
-import asyncio
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.fsm.context import FSMContext
+from aiogram import Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+import io
 from PIL import Image, ImageDraw, ImageFont
-import config
+import asyncio
 
-bot = Bot(token=config.TOKEN)
+API_TOKEN = 'YOUR_BOT_TOKEN_HERE'
+
+bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher()
+dp = Dispatcher(storage=storage)
+router = Router()
 
 class CommandState:
     waiting_for_name = "waiting_for_name"
 
 
-@dp.message_handler(Command("start"))
-async def start(message: types.Message):
+@router.message(Command("start"))
+async def start_command_handler(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     user_name = message.from_user.full_name
     user_username = message.from_user.username
@@ -25,14 +28,13 @@ async def start(message: types.Message):
         "Введи команду /create, щоб створити сертифікат GoITeens"
     )
 
-@dp.message_handler(Command("create"))
-async def create(message: types.Message, state: FSMContext):
+@router.message(Command("create"))
+async def create_command_handler(message: types.Message, state: FSMContext):
     await message.answer("Введіть своє ім'я, щоб згенерувати сертифікат!")
-
     await state.set_state(CommandState.waiting_for_name)
 
-@dp.message_handler(state=CommandState.waiting_for_name)
-async def send_certificate(message: types.Message, state: FSMContext):
+@router.message(state=CommandState.waiting_for_name)
+async def send_certificate_handler(message: types.Message, state: FSMContext):
     clock = await bot.send_message(message.chat.id, "⏳")
     
     await asyncio.sleep(1)
@@ -61,6 +63,8 @@ async def send_certificate(message: types.Message, state: FSMContext):
     await bot.delete_message(message.chat.id, clock.message_id)
     await message.answer_photo(image_buffer)
     await state.finish()
+
+dp.include_router(router)
 
 if __name__ == "__main__":
     import keep_alive
